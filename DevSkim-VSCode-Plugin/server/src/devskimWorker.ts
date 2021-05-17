@@ -24,6 +24,7 @@ import { RulesLoader } from "./utility_classes/rulesLoader";
 import {DevskimLambdaEngine} from "./devskimLambda";
 import {DocumentUtilities} from "./utility_classes/document";
 import { DebugLogger } from "./utility_classes/logger";
+import { matchesPattern } from '@babel/types';
 
 /**
  * The bulk of the DevSkim analysis logic.  Orchestrates Loading rules in, implements and exposes functions to run rules across a file
@@ -293,6 +294,55 @@ export class DevSkimWorker
         }
     }
 
+    private static analyzePattern(documentContents: string, type: string, pattern: string, modifiers: string[], matchPosition) {
+        let XRegExp = require('xregexp');
+        let match = null;
+        if (pattern.substring(0,5) == "NOT~{" && pattern.substring(pattern.length - 2, pattern.length) == '}~') {
+            let match_tmp = DevSkimWorker.analyzePattern(documentContents, type, pattern.substring(5, pattern.length - 2), modifiers, matchPosition);
+            if (match_tmp == null) {
+                match = DevSkimWorker.analyzePattern(documentContents, type, '.', modifiers, matchPosition);
+            } else {
+                match = null;
+            }
+        } else if (pattern.includes("}~AND~{") || pattern.includes("}~OR~{")) {
+            let inner = 0;
+            for (var iterator = 0; iterator < pattern.length; iterator++) {
+                if (pattern.substring(iterator, iterator + 2) == '}~') {
+                    inner--;
+                    if (inner == 0) {
+                        if (pattern.substring(iterator, iterator + 7) == '}~AND~{') {
+                            match = DevSkimWorker.analyzePattern(documentContents, type, pattern.substring(2, iterator), modifiers, matchPosition);
+                            let match2 = DevSkimWorker.analyzePattern(documentContents, type, pattern.substring(iterator + 7,pattern.length - 2), modifiers, matchPosition);
+                            if ( match && match2){
+                                break;
+                            } else {
+                                match = null;
+                            }
+                        }
+                        if (pattern.substring(iterator, iterator + 6) == '}~OR~{') {
+                            match = DevSkimWorker.analyzePattern(documentContents, type, pattern.substring(2, iterator), modifiers, matchPosition);
+                            let match2 = DevSkimWorker.analyzePattern(documentContents, type, pattern.substring(iterator + 6,pattern.length - 2), modifiers, matchPosition);
+                            if (match) {
+                                break;
+                            } else if (match2) {
+                                match = match2;
+                                break;
+                            }
+                        }
+                    }
+                }
+                if (pattern.substring(iterator, iterator + 2) == '~{') {
+                    inner++;
+                }
+            }
+        } else {
+            const matchPattern: RegExp = DevSkimWorker.MakeRegex(type, pattern, modifiers, true);
+            //go through all of the text looking for a match with the given pattern
+            match = XRegExp.exec(documentContents, matchPattern, matchPosition);
+        }
+        return match;
+    }
+
     /**
      * Perform the actual analysis of the text, using the provided rules
      *
@@ -319,14 +369,15 @@ export class DevSkimWorker
             {
                 for (let patternIndex = 0; patternIndex < rule.patterns.length; patternIndex++) 
                 {
+
+                    //console.log(rule.patterns[patternIndex].pattern);
                     let modifiers: string[] = (rule.patterns[patternIndex].modifiers != undefined && rule.patterns[patternIndex].modifiers.length > 0) ?
                         rule.patterns[patternIndex].modifiers.concat(["g"]) : ["g"];
 
-                    const matchPattern: RegExp = DevSkimWorker.MakeRegex(rule.patterns[patternIndex].type, rule.patterns[patternIndex].pattern, modifiers, true);
-
-                    //go through all of the text looking for a match with the given pattern
+                    let match = null;
                     let matchPosition = 0;
-                    let match = XRegExp.exec(documentContents, matchPattern, matchPosition);
+                    match = DevSkimWorker.analyzePattern(documentContents, rule.patterns[patternIndex].type, rule.patterns[patternIndex].pattern, modifiers, matchPosition);
+
                     while (match) 
                     {
                         //if the rule doesn't contain any conditions, set it to an empty array to make logic later easier
@@ -395,7 +446,7 @@ export class DevSkimWorker
                         }
                         //advance the location we are searching in the line
                         matchPosition = match.index + match[0].length;
-                        match = XRegExp.exec(documentContents, matchPattern, matchPosition);
+                        match = DevSkimWorker.analyzePattern(documentContents, rule.patterns[patternIndex].type, rule.patterns[patternIndex].pattern, modifiers, matchPosition);
                     }
                 }
             }

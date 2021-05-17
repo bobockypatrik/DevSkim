@@ -138,5 +138,167 @@
                 }
             }
         ]
+    },
+    {
+        "name": "The addslashes is sometimes incorrectly used to try to prevent SQL Injection.",
+        "id": "DS144888",
+        "description": "The addslashes() is sometimes incorrectly used to try to prevent SQL Injection. Instead, database-specific escaping functions and/or prepared statements should be used.",
+        "recommendation": "DO not use function addslashes()",
+        "applies_to": [
+            "php"
+        ],
+        "tags": [
+            "Implementation.PHP"
+        ],
+        "severity": "moderate",
+        "_comment": "",
+        "rule_info": "DS144888.md",
+        "patterns": [
+            {
+                "pattern": "addslashes[ ]*\\(",
+                "type": "regex",
+                "scopes": [
+                    "code"
+                ],
+                "_comment": ""
+            }
+        ],
+        "fix_its": [
+        ]
+    },
+    {
+        "name": "SQL Injection",
+        "id": "DS144889",
+        "description": "This implementation is SQL injection vulnerable.",
+        "recommendation": "Use PDO, ORM or database function for input validation.",
+        "applies_to": [
+            "php"
+        ],
+        "tags": [
+            "Implementation.PHP"
+        ],
+        "severity": "moderate",
+        "_comment": "",
+        "rule_info": "DS144889.md",
+        "patterns": [
+            {
+                "pattern": "~{~{(mysql_query|mysqli_query|pg_query)[ ]*\\([^\\)]*\\$_(GET|POST|REQUEST)[^\\)]*\\)}~AND~{NOT~{(mysql_query|mysqli_query|pg_query)[ ]*\\([^\\)]*(real_escape_string|pg_escape_string|mysql_real_escape_string|mysqli_real_escape_string|\\(int\\)|intval)[\\(]?[^\\)]*\\$_(GET|POST|REQUEST)[^\\)]*\\)}~}~}~OR~{~{(?i)(ADD|ADD|CONSTRAINT|ALTER|ALTER|COLUMN|ALTER|TABLE|ALL|AND|ANY|AS|ASC|BACKUP|DATABASE|BETWEEN|CASE|CHECK|COLUMN|CONSTRAINT|CREATE|CREATE|DATABASE|CREATE|INDEX|CREATE|OR|REPLACE|VIEW|CREATE|TABLE|CREATE|PROCEDURE|CREATE|UNIQUE|INDEX|CREATE|VIEW|DATABASE|DEFAULT|DELETE|DESC|DISTINCT|DROP|DROP|COLUMN|DROP|CONSTRAINT|DROP|DATABASE|DROP|DEFAULT|DROP|INDEX|DROP|TABLE|DROP|VIEW|EXEC|EXISTS|FOREIGN|KEY|FROM|FULL|OUTER|JOIN|GROUP|BY|HAVING|IN|INDEX|INNER|JOIN|INSERT|INTO|INSERT|INTO|SELECT|IS|NULL|IS|NOT|NULL|JOIN|LEFT|JOIN|LIKE|LIMIT|NOT|NOT|NULL|OR|ORDER|BY|OUTER|JOIN|PRIMARY|KEY|PROCEDURE|RIGHT|JOIN|ROWNUM|SELECT|SELECT|DISTINCT|SELECT|INTO|SELECT|TOP|SET|TABLE|TOP|TRUNCATE|TABLE|UNION|UNION|ALL|UNIQUE|UPDATE|VALUES|VIEW|WHERE)[^;]*\\$_(GET|POST|REQUEST)[^;]*;}~AND~{NOT~{(?i)(ADD|ADD|CONSTRAINT|ALTER|ALTER|COLUMN|ALTER|TABLE|ALL|AND|ANY|AS|ASC|BACKUP|DATABASE|BETWEEN|CASE|CHECK|COLUMN|CONSTRAINT|CREATE|CREATE|DATABASE|CREATE|INDEX|CREATE|OR|REPLACE|VIEW|CREATE|TABLE|CREATE|PROCEDURE|CREATE|UNIQUE|INDEX|CREATE|VIEW|DATABASE|DEFAULT|DELETE|DESC|DISTINCT|DROP|DROP|COLUMN|DROP|CONSTRAINT|DROP|DATABASE|DROP|DEFAULT|DROP|INDEX|DROP|TABLE|DROP|VIEW|EXEC|EXISTS|FOREIGN|KEY|FROM|FULL|OUTER|JOIN|GROUP|BY|HAVING|IN|INDEX|INNER|JOIN|INSERT|INTO|INSERT|INTO|SELECT|IS|NULL|IS|NOT|NULL|JOIN|LEFT|JOIN|LIKE|LIMIT|NOT|NOT|NULL|OR|ORDER|BY|OUTER|JOIN|PRIMARY|KEY|PROCEDURE|RIGHT|JOIN|ROWNUM|SELECT|SELECT|DISTINCT|SELECT|INTO|SELECT|TOP|SET|TABLE|TOP|TRUNCATE|TABLE|UNION|UNION|ALL|UNIQUE|UPDATE|VALUES|VIEW|WHERE)[ ]*[^;]*(real_escape_string|pg_escape_string|mysql_real_escape_string|mysqli_real_escape_string|\\(int\\)|intval){1} *[\\(]? *\\$_(GET|POST|REQUEST)[^;]*;}~}~}~",
+                "type": "regex",
+                "scopes": [
+                    "code"
+                ],
+                "_comment": ""
+            }
+        ],
+        "fix_its": [
+        ]
+    },
+    {
+        "name": "Usage of eval function",
+        "id": "DS144890",
+        "description": "The eval() language construct is very dangerous because it allows execution of arbitrary PHP code.",
+        "recommendation": "You should not to use eval function when it is not necessary.",
+        "applies_to": [
+            "php"
+        ],
+        "tags": [
+            "Implementation.PHP"
+        ],
+        "severity": "best-practice",
+        "_comment": "",
+        "rule_info": "DS144890.md",
+        "patterns": [
+            {
+                "pattern": "eval {0,}(\\r\\n\\r\\n)?( {0,}| {0,})\\(",
+                "type": "regex",
+                "scopes": [
+                    "code"
+                ],
+                "_comment": ""
+            }
+        ],
+        "fix_its": [
+        ]
+    },
+    {
+        "name": "Usage of exec function",
+        "id": "DS144891",
+        "description": "The usage of exec function can be dangerous when user-supplied data are passed to this function.",
+        "recommendation": "When allowing user-supplied data to be passed to this function, use escapeshellarg() or escapeshellcmd() to ensure that users cannot trick the system into executing arbitrary commands.",
+        "applies_to": [
+            "php"
+        ],
+        "tags": [
+            "Implementation.PHP"
+        ],
+        "severity": "best-practice",
+        "_comment": "",
+        "rule_info": "DS144891.md",
+        "patterns": [
+            {
+                "pattern": "exec {0,}(\\r\\n\\r\\n)?( {0,}| {0,})\\(",
+                "type": "regex",
+                "scopes": [
+                    "code"
+                ],
+                "_comment": ""
+            }
+        ],
+        "fix_its": [
+        ]
+    },
+    {
+        "name": "Usage of system function",
+        "id": "DS144891",
+        "description": "The usage of system function can be dangerous when user-supplied data are passed to this function.",
+        "recommendation": "When allowing user-supplied data to be passed to this function, use escapeshellarg() or escapeshellcmd() to ensure that users cannot trick the system into executing arbitrary commands.",
+        "applies_to": [
+            "php"
+        ],
+        "tags": [
+            "Implementation.PHP"
+        ],
+        "severity": "best-practice",
+        "_comment": "",
+        "rule_info": "DS144891.md",
+        "patterns": [
+            {
+                "pattern": "system {0,}(\\r\\n\\r\\n)?( {0,}| {0,})\\(",
+                "type": "regex",
+                "scopes": [
+                    "code"
+                ],
+                "_comment": ""
+            }
+        ],
+        "fix_its": [
+        ]
+    },
+    {
+        "name": "Usage of shell_exec function",
+        "id": "DS144892",
+        "description": "The usage of shell_exec function can be dangerous when user-supplied data are passed to this function.",
+        "recommendation": "When allowing user-supplied data to be passed to this function, use escapeshellarg() or escapeshellcmd() to ensure that users cannot trick the system into executing arbitrary commands.",
+        "applies_to": [
+            "php"
+        ],
+        "tags": [
+            "Implementation.PHP"
+        ],
+        "severity": "best-practice",
+        "_comment": "",
+        "rule_info": "DS144892.md",
+        "patterns": [
+            {
+                "pattern": "shell_exec {0,}(\\r\\n\\r\\n)?( {0,}| {0,})\\(",
+                "type": "regex",
+                "scopes": [
+                    "code"
+                ],
+                "_comment": ""
+            }
+        ],
+        "fix_its": [
+        ]
     }
 ]
